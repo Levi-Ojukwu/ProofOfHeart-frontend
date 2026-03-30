@@ -25,8 +25,8 @@ function formatDate(ts: number) {
 
 export default function CauseDetailClient({ id }: { id: string }) {
   const { publicKey: userWalletAddress } = useWallet();
-  const numericId = Number(id);
-  const { campaign: fetchedCampaign, isLoading, error, refetch } = useCampaign(numericId);
+
+  const { campaign: fetchedCampaign, isLoading, error, notFound, refetch } = useCampaign(id);
 
   // Local copy for optimistic vote updates
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -165,6 +165,9 @@ export default function CauseDetailClient({ id }: { id: string }) {
     voteCounts.totalVotes > 0 ? Math.round((voteCounts.upvotes / voteCounts.totalVotes) * 100) : 0;
 
   const categoryLabel = CATEGORY_LABELS[campaign.category] ?? 'Other';
+  const platformFeePercent = platformFeeBps / 100;
+  const estimatedFeeAmount = raised * (platformFeeBps / 10000);
+  const estimatedCreatorReceives = raised - estimatedFeeAmount;
 
   return (
   <div className="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
@@ -243,6 +246,32 @@ export default function CauseDetailClient({ id }: { id: string }) {
                   fundingGoal={campaign.funding_goal}
                 />
               </div>
+            )}
+
+            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Platform Fee</h2>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
+                  {isPlatformFeeLoading ? 'Loading…' : `${platformFeePercent.toFixed(2)}%`}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+                A platform fee of {platformFeePercent.toFixed(2)}% is deducted from funds when withdrawn by the creator.
+                Based on the current amount raised, that is {estimatedFeeAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} XLM
+                in fees and {estimatedCreatorReceives.toLocaleString(undefined, { maximumFractionDigits: 2 })} XLM delivered to the creator.
+              </p>
+              {isFallback && (
+                <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  The on-chain fee getter is not available yet, so this page is using the current known fallback fee of 3%.
+                </p>
+              )}
+            </div>
+
+            {campaign.has_revenue_sharing && (
+              <RevenueSharingPanel
+                campaign={campaign}
+                onActionSuccess={refetch}
+              />
             )}
 
             {campaign.has_revenue_sharing && (
