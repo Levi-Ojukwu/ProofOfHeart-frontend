@@ -70,7 +70,6 @@ export default function DashboardPage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Wallet Balance</h2>
         {balanceLoading ? (
-          <span className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400"><Spinner className="h-4 w-4 text-blue-500" /> Loading balance…</span>
           <span className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
             <Spinner className="h-4 w-4 text-blue-500" /> Loading balance…
           </span>
