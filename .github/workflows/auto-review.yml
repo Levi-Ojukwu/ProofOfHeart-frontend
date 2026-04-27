@@ -101,8 +101,8 @@ jobs:
           PR_DELS: ${{ steps.ctx.outputs.dels }}
           HAS_ISSUE: ${{ steps.ctx.outputs.has_issue }}
         run: |
-          SYSTEM_PROMPT=$(cat <<'SYSTEM_EOF'
-          You are an EXTREMELY LENIENT code reviewer for Lernza, a hackathon project.
+          jq -n \
+            --arg system   'You are an EXTREMELY LENIENT code reviewer for Lernza, a hackathon project.
           Interns are shipping fast. CI has been disabled to maximise velocity.
 
           ## Default behaviour: APPROVE almost everything
@@ -184,12 +184,7 @@ jobs:
             "fraud_type": "none" | "empty" | "unrelated" | "ai_slop" | "copy_paste" | "revert_repackage" | "claim_mismatch" | "security",
             "evidence": <string — for FLAG_FRAUD, cite specific files/lines/patterns from the diff that prove the fraud; for APPROVE, name one real change you observed>,
             "summary": <string under 150 words, friendly tone, addressed to the contributor>
-          }
-          SYSTEM_EOF
-          )
-
-          jq -n \
-            --arg system   "$SYSTEM_PROMPT" \
+          }' \
             --arg title    "$PR_TITLE" \
             --arg author   "$PR_AUTHOR" \
             --arg pr_body  "$PR_BODY" \
