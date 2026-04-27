@@ -47,7 +47,7 @@ jobs:
           REAL_CHANGE_LINES=$(grep -E '^[+-]' /tmp/pr-diff.txt | grep -vE '^(\+\+\+|---)' | wc -l | tr -d ' ')
           echo "diff_bytes=$DIFF_BYTES" >> $GITHUB_OUTPUT
           echo "real_change_lines=$REAL_CHANGE_LINES" >> $GITHUB_OUTPUT
-          head -3000 /tmp/pr-diff.txt > /tmp/pr-diff-truncated.txt
+          head -2000 /tmp/pr-diff.txt > /tmp/pr-diff-truncated.txt
           ISSUE_NUMS=$(echo "$BODY" | \
             grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#[0-9]+' | \
             grep -oE '[0-9]+' | sort -u | tr '\n' ' ' || true)
@@ -208,15 +208,18 @@ jobs:
                     "Has linked issue: " + $has_iss + "\n\n" +
                     "## PR description\n\n" + $pr_body + "\n\n" +
                     "## Linked issue(s) full content\n\n" + $issues + "\n\n" +
-                    "## Diff (first 3000 lines)\n\n```diff\n" + $diff + "\n```\n\n" +
+                    "## Diff (first 2000 lines)\n\n```diff\n" + $diff + "\n```\n\n" +
                     "Now produce the JSON review object."
                 ) }
               ],
-              max_completion_tokens: 4096,
+              max_completion_tokens: 2048,
               temperature: 0.1,
               response_format: { type: "json_object" },
               reasoning_effort: "medium"
             }' > /tmp/payload.json
+
+          PAYLOAD_SIZE=$(wc -c < /tmp/payload.json)
+          echo "Payload size: $PAYLOAD_SIZE bytes"
 
           RESPONSE=$(curl -s --max-time 180 https://api.groq.com/openai/v1/chat/completions \
             -H "Content-Type: application/json" \
